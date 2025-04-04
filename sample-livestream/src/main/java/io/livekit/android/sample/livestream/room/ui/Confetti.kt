@@ -132,6 +132,7 @@ class ConfettiState {
 }
 
 
+@Suppress("OverrideDeprecatedMigration")
 private class EmojiDrawable(val string: String) : Drawable() {
     val paint = Paint()
 

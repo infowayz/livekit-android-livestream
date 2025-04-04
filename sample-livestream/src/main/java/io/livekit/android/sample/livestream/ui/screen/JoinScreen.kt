@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -44,8 +45,11 @@ import androidx.constraintlayout.compose.Dimension
 import com.github.ajalt.timberkt.Timber
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.sample.livestream.destinations.RoomScreenContainerDestination
+import io.livekit.android.sample.livestream.room.data.CreateStreamRequest
+import io.livekit.android.sample.livestream.room.data.CreateStreamResponse
 import io.livekit.android.sample.livestream.room.data.JoinStreamRequest
 import io.livekit.android.sample.livestream.room.data.JoinStreamResponse
 import io.livekit.android.sample.livestream.room.data.LivestreamApi
@@ -56,6 +60,7 @@ import io.livekit.android.sample.livestream.ui.control.Spacer
 import io.livekit.android.sample.livestream.ui.theme.Dimens
 import io.livekit.android.sample.livestream.util.PreferencesManager
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
@@ -179,4 +184,27 @@ fun JoinScreen(
             }
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun JoinScreenPreview() {
+    val mockLivestreamApi = object : LivestreamApi {
+        override suspend fun createStream(request: CreateStreamRequest): Response<CreateStreamResponse> {
+            throw NotImplementedError("Mock implementation")
+        }
+        override suspend fun joinStream(request: JoinStreamRequest): Response<JoinStreamResponse> {
+            throw NotImplementedError("Mock implementation")
+        }
+    }
+
+    val mockNavigator = EmptyDestinationsNavigator
+    val context = LocalContext.current
+    val mockPreferencesManager = PreferencesManager(context)
+
+    JoinScreen(
+        livestreamApi = mockLivestreamApi,
+        navigator = mockNavigator,
+        preferencesManager = mockPreferencesManager
+    )
 }

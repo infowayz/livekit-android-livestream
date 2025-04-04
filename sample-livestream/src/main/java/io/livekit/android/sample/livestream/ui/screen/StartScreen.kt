@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package io.livekit.android.sample.livestream.ui.screen
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +67,8 @@ import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.sample.livestream.destinations.RoomScreenContainerDestination
 import io.livekit.android.sample.livestream.room.data.CreateStreamRequest
 import io.livekit.android.sample.livestream.room.data.CreateStreamResponse
+import io.livekit.android.sample.livestream.room.data.JoinStreamRequest
+import io.livekit.android.sample.livestream.room.data.JoinStreamResponse
 import io.livekit.android.sample.livestream.room.data.LivestreamApi
 import io.livekit.android.sample.livestream.room.data.RoomMetadata
 import io.livekit.android.sample.livestream.room.state.rememberEnableCamera
@@ -81,7 +86,6 @@ import kotlinx.coroutines.launch
 /**
  * Screen for setting up options for the livestream before starting.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
 fun StartScreen(
@@ -297,5 +301,180 @@ fun SwitchButton(
         )
 
         Switch(checked = checked, onCheckedChange = onCheckedChanged)
+    }
+}
+
+@Composable
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+fun StartScreenPreview() {
+    val mockLivestreamApi = object : LivestreamApi {
+        override suspend fun createStream(request: CreateStreamRequest): retrofit2.Response<CreateStreamResponse> {
+            throw NotImplementedError("Mock implementation")
+        }
+        override suspend fun joinStream(request: JoinStreamRequest): retrofit2.Response<JoinStreamResponse> {
+            throw NotImplementedError("Mock implementation")
+        }
+    }
+
+    val mockNavigator = com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+    val context = LocalContext.current
+    val mockPreferencesManager = PreferencesManager(context)
+
+    StartScreenPreviewContent(
+        userName = TextFieldValue("Preview User"),
+        onUserNameChanged = {},
+        chatEnabled = true,
+        onChatEnabledChanged = {},
+        viewerJoinRequestEnabled = true,
+        onViewerJoinRequestEnabledChanged = {},
+        onStartClicked = {},
+        canEnableVideo = true,
+        canEnableAudio = true
+    )
+}
+
+@Composable
+private fun StartScreenPreviewContent(
+    userName: TextFieldValue,
+    onUserNameChanged: (TextFieldValue) -> Unit,
+    chatEnabled: Boolean,
+    onChatEnabledChanged: (Boolean) -> Unit,
+    viewerJoinRequestEnabled: Boolean,
+    onViewerJoinRequestEnabledChanged: (Boolean) -> Unit,
+    onStartClicked: () -> Unit,
+    canEnableVideo: Boolean,
+    canEnableAudio: Boolean
+) {
+    var cameraPosition by remember {
+        mutableStateOf(CameraPosition.FRONT)
+    }
+
+    ConstraintLayout(
+        modifier = Modifier
+            .padding(Dimens.spacer)
+            .fillMaxSize()
+    ) {
+        val (content, joinButton) = createRefs()
+        Column(
+            modifier = Modifier
+                .constrainAs(content) {
+                    width = Dimension.fillToConstraints
+                    height = Dimension.fillToConstraints
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(joinButton.top)
+                }
+        ) {
+            BackButton {
+                // No-op in preview
+            }
+
+            Text(
+                text = "Start Livestream",
+                fontWeight = FontWeight.W700,
+                fontSize = 34.sp
+            )
+
+            Box(modifier = Modifier.weight(1f)) {
+                if (canEnableVideo) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFF333333))
+                    ) {
+                        Text(
+                            text = "Camera Preview",
+                            color = Color.White,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                    Row {
+                        Spacer(10.dp)
+                        ControlButton(
+                            onClick = {
+                                cameraPosition = cameraPosition.flipped()
+                            },
+                            modifier = Modifier
+                                .width(43.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Camera permissions required.",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
+
+            Spacer(Dimens.spacer)
+
+            Text(
+                text = "DETAILS",
+                fontWeight = FontWeight.W700,
+                fontSize = 11.sp,
+                letterSpacing = 0.05.em
+            )
+
+            Spacer(4.dp)
+
+            OutlinedTextField(
+                value = userName,
+                onValueChange = onUserNameChanged,
+                label = { Text("Your Name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Dimens.spacer)
+
+            Text(
+                text = "OPTIONS",
+                fontWeight = FontWeight.W700,
+                fontSize = 11.sp,
+                letterSpacing = 0.05.em
+            )
+
+            Spacer(8.dp)
+            SwitchButton(
+                text = "Enable chat",
+                checked = chatEnabled,
+                onCheckedChanged = onChatEnabledChanged
+            )
+
+            SwitchButton(
+                text = "Viewers can request to join",
+                checked = viewerJoinRequestEnabled,
+                onCheckedChanged = onViewerJoinRequestEnabledChanged
+            )
+
+            Spacer(8.dp)
+        }
+
+        val joinButtonColors = ButtonDefaults.buttonColors(
+            contentColor = Color.White,
+            containerColor = Color(0xFFB11FF9)
+        )
+        LargeTextButton(
+            text = "Start livestream",
+            colors = joinButtonColors,
+            onClick = onStartClicked,
+            enabled = userName.text.isNotBlank(),
+            modifier = Modifier.constrainAs(joinButton) {
+                width = Dimension.fillToConstraints
+                height = Dimension.value(Dimens.buttonHeight)
+                bottom.linkTo(parent.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }
+        )
     }
 }

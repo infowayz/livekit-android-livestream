@@ -135,7 +135,7 @@ fun StartScreen(
             }
 
             Text(
-                text = "Start Livestream",
+                text = "Start SodaLive",
                 fontWeight = FontWeight.W700,
                 fontSize = 34.sp
             )
@@ -371,7 +371,7 @@ private fun StartScreenPreviewContent(
             }
 
             Text(
-                text = "Start Livestream",
+                text = "Start SodaLive Stream",
                 fontWeight = FontWeight.W700,
                 fontSize = 34.sp
             )

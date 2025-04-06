@@ -97,7 +97,7 @@ fun JoinScreen(
             }
 
             Text(
-                text = "Join Livestream",
+                text = "Join SodaLive Stream",
                 fontWeight = FontWeight.W700,
                 fontSize = 34.sp
             )
